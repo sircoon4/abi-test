@@ -1,0 +1,13 @@
+dictionary { 
+    type_id: combination_equipment17, 
+    values: dictionary { 
+        r: 1, 
+        s: 1, 
+        a: [251 38 190 190 58 232 18 220 115 90 219 176 215 69 238 51 117 143 19 118], 
+        h: false, 
+        i: 373, 
+        id: [176 127 32 210 96 41 122 66 165 202 223 75 131 92 42 1], 
+        p: true, 
+        pid: <nil> 
+    } 
+}
