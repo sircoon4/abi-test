@@ -1,8 +1,11 @@
-package main
+package vm
 
 import (
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
+	"math/big"
+	"reflect"
 	"strconv"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -10,76 +13,6 @@ import (
 	"github.com/sircoon4/bencodex-go"
 	"github.com/sircoon4/bencodex-go/bencodextype"
 )
-
-func main() {
-	serializedPayloadList := [][]byte{}
-	serializedPayloadHackAndSlash := []byte("ZDE6UzcwOjBEAiBREB4k6V+8VAXxIe9I1s565xeRyEhTcvft0QtkQavdRAIgF/7gAwEK1hCXBI3vStWHsInR56Pjbpgr77ZGNfYJWJ8xOmFsZHU3OnR5cGVfaWR1MTY6aGFja19hbmRfc2xhc2gyMnU2OnZhbHVlc2R1MTI6YXBTdG9uZUNvdW50dTE6MHUxMzphdmF0YXJBZGRyZXNzMjA63+Olmd3JqvwM5CMsow1BKkN5eE91ODpjb3N0dW1lc2xldTEwOmVxdWlwbWVudHNsMTY6k0hvMSQP3ESqxHe5FvP/ZDE2OnESdTcOEDhHjXX+a8k/kgMxNjputrpDman3Q5V424Y2EJutMTY6vGXnkjiTjk6uEDh/1UnKlTE2OoCmFqSy2FdGlMeyRVDTd0sxNjqAhR6pZsrMRoS+9euOX7TnMTY6yetsy/AeaEm0XJX2GX1KBWV1NTpmb29kc2xldTI6aWQxNjpVMrOqojpcTo+szFsaRu5tdTE6cmxsdTE6MHU1OjMwMDAxZWV1NzpzdGFnZUlkdTM6MjEwdTE0OnRvdGFsUGxheUNvdW50dTE6MXU3OndvcmxkSWR1MTo1ZWVlMTpnMzI6RYIlDQ2jOwZ3moR10oPV3SEMaDubmZ100D+sT1j6a84xOmxpNGUxOm1sZHUxMzpkZWNpbWFsUGxhY2VzMToSdTc6bWludGVyc251Njp0aWNrZXJ1NDpNZWFkZWkxMDAwMDAwMDAwMDAwMDAwMDAwZWUxOm5pMzExNmUxOnA2NToE3wbqFQmA1Y+s/9KKFfFC0scchb6fM0FbN2zIUcbvextqIZ+RGm9zXti+cBRBMhv+/ghXR6k08lAxOUH2iJvMYzE6czIwOmtPF4trn3OiAUK7/onUOjgBB4aDMTp0dTI3OjIwMjQtMDctMDVUMDk6MjM6MjAuNTE3Njc2WjE6dWxlZQ==")
-	serializedPayloadGrinding := []byte("ZDE6UzcwOjBEAiBNIJpUkfHyhnA3wCHRFt9iuyHqPbKPbEys9MF/RsG1OQIgTB1dU35a5Cr2odqIkNUE6hEZ/PIdrLt5fiidK3YrQsoxOmFsZHU3OnR5cGVfaWR1OTpncmluZGluZzJ1Njp2YWx1ZXNkdTE6YTIwOlE4aopjoX/XOXBM3WCk5oN/7lWIdTE6Y3R1MTplbDE2OutbnGA0koFAu+zs6J5VuAVldTI6aWQxNjpJtSFKgJLXQpKj9T0cXokPZWVlMTpnMzI6RYIlDQ2jOwZ3moR10oPV3SEMaDubmZ100D+sT1j6a84xOmxpMWUxOm1sZHUxMzpkZWNpbWFsUGxhY2VzMToSdTc6bWludGVyc251Njp0aWNrZXJ1NDpNZWFkZWkxMDAwMDAwMDAwMDAwMDAwMDAwZWUxOm5pMjc1ZTE6cDY1OgTcDJ8HG/Fe9jSl94B4LbBfLyUe2gJZmIVaLbjVMXNKh14btogWXuVmcKGhwxuQeDQHjkVD1NXeLyA+X4Jj5Y0vMTpzMjA6ga9iZHvpgtBiwvnBCbOlOdjJy8ExOnR1Mjc6MjAyNC0wNy0wNVQwOToyMzowNi4xNzYyODhaMTp1bGVl")
-	serializedPayloadCombinationEquipment := []byte("ZDE6UzcwOjBEAiAAqENcATSUfl/izYJWShs0nTLf5XDqg+n11hTIlSZ7kAIgWzmye7xj2lTPL1bdO+FztKTgSPHYRXBHTFni5OGjDSMxOmFsZHU3OnR5cGVfaWR1MjM6Y29tYmluYXRpb25fZXF1aXBtZW50MTd1Njp2YWx1ZXNkdTE6YTIwOvsmvr466BLcc1rbsNdF7jN1jxN2dTE6aGZ1MTppdTM6MzczdTI6aWQxNjqwfyDSYCl6QqXK30uDXCoBdTE6cHR1MzpwaWRudTE6cnUxOjF1MTpzdTE6MWVlZTE6ZzMyOkWCJQ0NozsGd5qEddKD1d0hDGg7m5mddNA/rE9Y+mvOMTpsaTFlMTptbGR1MTM6ZGVjaW1hbFBsYWNlczE6EnU3Om1pbnRlcnNudTY6dGlja2VydTQ6TWVhZGVpMTAwMDAwMDAwMDAwMDAwMDAwMGVlMTpuaTQ0ZTE6cDY1OgTtl6zT5sIF42uyL9icLWTkFBfLykCjUDRNSPgVzoJ3P0UPXpBZci4nWTcs/pSwsxcfhgUULLgxb5jhWzvRNMUGMTpzMjA695+PB+EmhdKUge+5CMjRa/kIWmIxOnR1Mjc6MjAyNC0wNy0wNVQwOToyMzoxMy41ODcyMTVaMTp1bGVl")
-	serializedPayloadRapidCombination := []byte("ZDE6UzcwOjBEAiBZR4AWgBA3nzr85z78em/zxXYVNUf1FequYqCpyA2JEgIgbsaxuK0+ltCOiXT42GnRxZZYViOrJxM6y5WsNVMh1I8xOmFsZHU3OnR5cGVfaWR1MTk6cmFwaWRfY29tYmluYXRpb24xMHU2OnZhbHVlc2R1MTM6YXZhdGFyQWRkcmVzczIwOvH7GPXpy7CHQO4PFtgXbP3CgQNxdTI6aWQxNjoq3OyMSPUsS5aa18gH++MtdTk6c2xvdEluZGV4dTE6MGVlZTE6ZzMyOkWCJQ0NozsGd5qEddKD1d0hDGg7m5mddNA/rE9Y+mvOMTpsaTFlMTptbGR1MTM6ZGVjaW1hbFBsYWNlczE6EnU3Om1pbnRlcnNudTY6dGlja2VydTQ6TWVhZGVpMTAwMDAwMDAwMDAwMDAwMDAwMGVlMTpuaTE2M2UxOnA2NToEU/MbuCWFARsi1/TWHi1mmXKhjO7X1C0T7Iy81RiItB3qBfawFHS3Tn0asS1hW8XHstN1mLKixzKRIutHO9vbCDE6czIwOttjcXDqIhLYPQyav09/1q7lFQgAMTp0dTI3OjIwMjQtMDctMDVUMDk6MjM6MDcuNzkzODE2WjE6dWxlZQ==")
-	serializedPayloadHackAndSlashSweep := []byte("ZDE6UzcxOjBFAiEA3pSeUIw3Q7ZzkkeB4Iqa1d/W8OVdS55nCqJksCw40DYCIDCByMHbJqzes+gCsQiH0JzZ5zl3FN1bjOnwwYoT4G39MTphbGR1Nzp0eXBlX2lkdTIyOmhhY2tfYW5kX3NsYXNoX3N3ZWVwMTB1Njp2YWx1ZXNkdTExOmFjdGlvblBvaW50dTM6MTE1dTEyOmFwU3RvbmVDb3VudHUxOjB1MTM6YXZhdGFyQWRkcmVzczIwOgpwc9j+o4OCu1j37+QK3DU8CMMsdTg6Y29zdHVtZXNsZXUxMDplcXVpcG1lbnRzbDE2OvFS0g6N6xZNq1uSRRFzhfoxNjrPDwwqGNsyTqDLCCpn6R0xMTY6d3MmZy76p065VNQ9D8I2yTE2OvPoHX2fFWRIuV85tK9wzPsxNjpxKy6HMuBATo/kcggaW2NbMTY6UGCdqF7Fe0OlZEm2wm7rUzE2OuugcKljm7ZJrtOd8J5oqzVldTI6aWQxNjqS2IHQ4BQaTKKONtIVVwQgdTk6cnVuZUluZm9zbGx1MTowdTU6MzAwMDFlZXU3OnN0YWdlSWR1MzoxMzl1Nzp3b3JsZElkdTE6M2VlZTE6ZzMyOkWCJQ0NozsGd5qEddKD1d0hDGg7m5mddNA/rE9Y+mvOMTpsaTFlMTptbGR1MTM6ZGVjaW1hbFBsYWNlczE6EnU3Om1pbnRlcnNudTY6dGlja2VydTQ6TWVhZGVpMTAwMDAwMDAwMDAwMDAwMDAwMGVlMTpuaTI1N2UxOnA2NToEFNrx5bPvcPh05jtabwKOrsbvGhukSlWNA2ydhLJ6/Kvb07VgrHTQJ3CuX9KjKBkGrW/E3EMnpe3QkSVO8RSNxjE6czIwOveKSbie1JodVw+wZeAskPe1SH5bMTp0dTI3OjIwMjQtMDctMDVUMDk6MjM6MTIuNTg3MDAyWjE6dWxlZQ==")
-
-	serializedPayloadList = append(serializedPayloadList, serializedPayloadHackAndSlash)         //0
-	serializedPayloadList = append(serializedPayloadList, serializedPayloadGrinding)             //1
-	serializedPayloadList = append(serializedPayloadList, serializedPayloadCombinationEquipment) //2
-	serializedPayloadList = append(serializedPayloadList, serializedPayloadRapidCombination)     //3
-	serializedPayloadList = append(serializedPayloadList, serializedPayloadHackAndSlashSweep)    //4
-
-	action, err := extractActionFromSerializedPayload(serializedPayloadList[4])
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	actionType, ok := action.Get("type_id").(string)
-	if !ok {
-		fmt.Println("error while getting type_id")
-		return
-	}
-	actionValues, ok := action.Get("values").(*bencodextype.Dictionary)
-	if !ok {
-		fmt.Println("error while getting values")
-		return
-	}
-
-	var abi []byte
-	switch actionType {
-	case "hack_and_slash22":
-		abi, err = convertToHackAndSlashEthAbi(actionValues)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-	case "grinding2":
-		abi, err = convertToGrindingEthAbi(actionValues)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-	case "combination_equipment17":
-		abi, err = convertToCombinationEquipmentEthAbi(actionValues)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-	case "rapid_combination10":
-		abi, err = convertToRapidCombinationEthAbi(actionValues)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-	case "hack_and_slash_sweep10":
-		abi, err = convertToHackAndSlashSweepEthAbi(actionValues)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-	default:
-		fmt.Println("not supported action type")
-		return
-	}
-	fmt.Println(abi)
-}
 
 func extractActionFromSerializedPayload(serializedPayload []byte) (*bencodextype.Dictionary, error) {
 	encoded, err := base64.StdEncoding.DecodeString(string(serializedPayload))
@@ -386,6 +319,237 @@ func convertToHackAndSlashSweepEthAbi(actionValues *bencodextype.Dictionary) ([]
 		ActionPoint:   int64(actionPointValue),
 		WorldId:       int64(worldIdValue),
 		StageId:       int64(stageIdValue),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+type TransferAsset struct {
+	Sender    common.Address     `abi:"sender"`
+	Recipient common.Address     `abi:"recipient"`
+	Amount    FungibleAssetValue `abi:"amount"`
+	Memo      string             `abi:"memo"`
+}
+
+func convertToTransferAssetEthAbi(actionValues *bencodextype.Dictionary) ([]byte, error) {
+	var TupleTransferAsset, _ = abi.NewType("tuple", "struct TransferAsset", []abi.ArgumentMarshaling{
+		{Name: "sender", Type: "address"},
+		{Name: "recipient", Type: "address"},
+		{Name: "amount", Type: "tuple", Components: []abi.ArgumentMarshaling{
+			{Name: "currency", Type: "tuple", Components: []abi.ArgumentMarshaling{
+				{Name: "decimalPlaces", Type: "uint8"},
+				{Name: "minters", Type: "address[]"},
+				{Name: "ticker", Type: "string"},
+				{Name: "totalSupplyTrackable", Type: "bool"},
+				{Name: "maximumSupplyMajor", Type: "uint256"},
+				{Name: "maximumSupplyMinor", Type: "uint256"},
+			}},
+			{Name: "rawValue", Type: "uint256"},
+		}},
+		{Name: "memo", Type: "string"},
+	})
+
+	var arguments = abi.Arguments{
+		abi.Argument{Name: "TransferAsset", Type: TupleTransferAsset, Indexed: false},
+	}
+
+	senderValue := common.BytesToAddress(actionValues.Get("sender").([]byte))
+	recipientValue := common.BytesToAddress(actionValues.Get("recipient").([]byte))
+	amountValue := extractFungibleAssetValue(actionValues.Get("amount").([]any))
+
+	memoValue := ""
+	if actionValues.Contains("memo") {
+		if actionValues.Get("memo") != nil {
+			memoValue = actionValues.Get("memo").(string)
+		}
+	}
+
+	result, err := arguments.Pack(TransferAsset{
+		Sender:    senderValue,
+		Recipient: recipientValue,
+		Amount:    amountValue,
+		Memo:      memoValue,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+type ClaimItems struct {
+	Id [16]byte    `abi:"id"`
+	Cd []ClaimData `abi:"cd"`
+	M  string      `abi:"m"`
+}
+
+type ClaimData struct {
+	AvatarAddress       common.Address       `abi:"avatarAddress"`
+	FungibleAssetValues []FungibleAssetValue `abi:"fungibleAssetValues"`
+}
+
+func convertToClaimItemsEthAbi(actionValues *bencodextype.Dictionary) ([]byte, error) {
+	var TupleClaimItems, _ = abi.NewType("tuple", "struct ClaimItems", []abi.ArgumentMarshaling{
+		{Name: "id", Type: "uint8[16]"},
+		{Name: "cd", Type: "tuple[]", Components: []abi.ArgumentMarshaling{
+			{Name: "avatarAddress", Type: "address"},
+			{Name: "fungibleAssetValues", Type: "tuple[]", Components: []abi.ArgumentMarshaling{
+				{Name: "currency", Type: "tuple", Components: []abi.ArgumentMarshaling{
+					{Name: "decimalPlaces", Type: "uint8"},
+					{Name: "minters", Type: "address[]"},
+					{Name: "ticker", Type: "string"},
+					{Name: "totalSupplyTrackable", Type: "bool"},
+					{Name: "maximumSupplyMajor", Type: "uint256"},
+					{Name: "maximumSupplyMinor", Type: "uint256"},
+				}},
+				{Name: "rawValue", Type: "uint256"},
+			}},
+		}},
+		{Name: "m", Type: "string"},
+	})
+
+	var arguments = abi.Arguments{
+		abi.Argument{Name: "ClaimItems", Type: TupleClaimItems, Indexed: false},
+	}
+
+	idValue, _ := actionValues.Get("id").([]byte)
+
+	claimDataList := []ClaimData{}
+	claimDataValues := actionValues.Get("cd").([]any)
+	for _, claimData := range claimDataValues {
+		claimDataValue := claimData.([]any)
+		avatarAddressValue := common.BytesToAddress(claimDataValue[0].([]byte))
+		fungibleAssetValuesList := []FungibleAssetValue{}
+		for _, fungibleAssetValue := range claimDataValue[1].([]any) {
+			fungibleAssetValuesList = append(fungibleAssetValuesList, extractFungibleAssetValue(fungibleAssetValue.([]any)))
+		}
+		claimDataList = append(claimDataList, ClaimData{
+			AvatarAddress:       avatarAddressValue,
+			FungibleAssetValues: fungibleAssetValuesList,
+		})
+	}
+
+	mValue := ""
+	if actionValues.Contains("m") {
+		if actionValues.Get("m") != nil {
+			mValue = actionValues.Get("m").(string)
+		}
+	}
+
+	result, err := arguments.Pack(ClaimItems{
+		Id: [16]byte(idValue),
+		Cd: claimDataList,
+		M:  mValue,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+type FungibleAssetValue struct {
+	Currency Currency `abi:"currency"`
+	RawValue *big.Int `abi:"rawValue"`
+}
+
+type Currency struct {
+	DecimalPlaces        uint8            `abi:"decimalPlaces"`
+	Minters              []common.Address `abi:"minters"`
+	Ticker               string           `abi:"ticker"`
+	TotalSupplyTrackable bool             `abi:"totalSupplyTrackable"`
+	MaximumSupplyMajor   *big.Int         `abi:"maximumSupplyMajor"`
+	MaximumSupplyMinor   *big.Int         `abi:"maximumSupplyMinor"`
+}
+
+func extractFungibleAssetValue(value []any) FungibleAssetValue {
+	currencyDict := value[0].(*bencodextype.Dictionary)
+	preDecimalPlacesValue, _ := currencyDict.Get("decimalPlaces").([]byte)
+	decimalPlacesValue := preDecimalPlacesValue[0]
+	mintersList := []common.Address{}
+	if currencyDict.Get("minters") != nil {
+		for _, minters := range currencyDict.Get("minters").([]any) {
+			mintersValue := common.BytesToAddress(minters.([]byte))
+			mintersList = append(mintersList, mintersValue)
+		}
+	}
+	tickerValue := currencyDict.Get("ticker").(string)
+	totalSupplyTrackable := false
+	maximumSupplyMajor := big.NewInt(0)
+	maximumSupplyMinor := big.NewInt(0)
+	if currencyDict.Contains("totalSupplyTrackable") {
+		totalSupplyTrackable = currencyDict.Get("totalSupplyTrackable").(bool)
+		if currencyDict.Contains("maximumSupplyMajor") {
+			if currencyDict.Get("maximumSupplyMajor") != nil {
+				maximumSupplyMajor = getAsBigInt(currencyDict.Get("maximumSupplyMajor"))
+			}
+		}
+		if currencyDict.Contains("maximumSupplyMinor") {
+			if currencyDict.Get("maximumSupplyMinor") != nil {
+				maximumSupplyMinor = getAsBigInt(currencyDict.Get("maximumSupplyMinor"))
+			}
+		}
+	}
+	rawValue := getAsBigInt(value[1])
+	return FungibleAssetValue{
+		Currency: Currency{
+			DecimalPlaces:        decimalPlacesValue,
+			Minters:              mintersList,
+			Ticker:               tickerValue,
+			TotalSupplyTrackable: totalSupplyTrackable,
+			MaximumSupplyMajor:   maximumSupplyMajor,
+			MaximumSupplyMinor:   maximumSupplyMinor,
+		},
+		RawValue: rawValue,
+	}
+}
+
+func getAsBigInt(value any) *big.Int {
+	if value == nil {
+		return nil
+	}
+	valueBigInt, ok := value.(*big.Int)
+	if ok {
+		return valueBigInt
+	}
+	switch reflect.TypeOf(value).Kind() {
+	case reflect.Int:
+		return big.NewInt(int64(value.(int)))
+	default:
+		return nil
+	}
+}
+
+// for testing purpose
+type Simple struct {
+	Id       [16]byte `abi:"id"`
+	SimpleId int64    `abi:"simpleId"`
+}
+
+func convertToSimpleEthAbi() ([]byte, error) {
+	var TupleSimple, _ = abi.NewType("tuple[]", "struct array Simple", []abi.ArgumentMarshaling{
+		{Name: "id", Type: "uint8[16]"},
+		{Name: "simpleId", Type: "int64"},
+	})
+
+	var arguments = abi.Arguments{
+		abi.Argument{Name: "Simple", Type: TupleSimple, Indexed: false},
+	}
+
+	id1Value, _ := hex.DecodeString("b07f20d260297a42a5cadf4b835c2a01")
+	simple1 := Simple{
+		Id:       [16]byte(id1Value),
+		SimpleId: 1,
+	}
+
+	id2Value, _ := hex.DecodeString("b07f20d260297a42a5cadf4b835c2a01")
+	simple2 := Simple{
+		Id:       [16]byte(id2Value),
+		SimpleId: 1,
+	}
+
+	result, err := arguments.Pack([]Simple{
+		simple1, simple2, simple1,
 	})
 	if err != nil {
 		return nil, err

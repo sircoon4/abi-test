@@ -1,0 +1,30 @@
+dictionary { 
+    type_id: claim_items, 
+    values: dictionary { 
+        cd: [
+            [
+                [107 169 123 218 200 32 4 3 240 65 23 254 46 179 137 58 103 111 209 162] 
+                [
+                    [
+                        dictionary { 
+                            ticker: FAV__CRYSTAL, 
+                            decimalPlaces: [18], 
+                            minters: <nil> 
+                        } 
+                        2400000000000000000000
+                    ] 
+                    [
+                        dictionary { 
+                            decimalPlaces: [0], 
+                            minters: <nil>, 
+                            ticker: Item_NT_800201 
+                        } 
+                        12
+                    ]
+                ]
+            ]
+        ], 
+        id: [29 252 210 157 158 131 208 69 134 252 107 249 133 66 148 41], 
+        m: patrol reward 6ba97BDAc8200403f04117FE2eB3893a676fD1A2 / 107 
+    } 
+}

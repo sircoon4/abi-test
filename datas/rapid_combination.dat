@@ -1,0 +1,8 @@
+dictionary { 
+    type_id: rapid_combination10, 
+    values: dictionary { 
+        avatarAddress: [241 251 24 245 233 203 176 135 64 238 15 22 216 23 108 253 194 129 3 113], 
+        id: [42 220 236 140 72 245 44 75 150 154 215 200 7 251 227 45], 
+        slotIndex: 0 
+    } 
+}

@@ -1,0 +1,17 @@
+dictionary { 
+    type_id: transfer_asset5, 
+    values: dictionary { 
+        amount: [
+            dictionary { 
+                decimalPlaces: [2], 
+                minters: [
+                    [71 208 130 161 21 198 62 123 88 177 83 45 32 230 49 83 142 175 173 222]
+                ], 
+                ticker: NCG 
+            } 
+            1104
+        ], 
+        recipient: [130 49 122 187 35 115 20 182 155 233 83 62 111 244 213 164 139 29 27 146], 
+        sender: [60 130 97 209 41 141 108 206 163 40 230 49 182 132 82 66 182 0 113 111] 
+    } 
+}
