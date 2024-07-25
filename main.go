@@ -15,21 +15,20 @@ func main() {
 
 func proofAbi() {
 	var stateRootHash []byte
-	var proof [][]byte
+	var proof []byte
 	var key []byte
 	var value []byte
 
 	Bytes, _ := abi.NewType("bytes", "", nil)
-	BytesArr, _ := abi.NewType("bytes[]", "", nil)
 
 	var arguments = abi.Arguments{
 		abi.Argument{Name: "stateRootHash", Type: Bytes, Indexed: false},
-		abi.Argument{Name: "proof", Type: BytesArr, Indexed: false},
+		abi.Argument{Name: "proof", Type: Bytes, Indexed: false},
 		abi.Argument{Name: "key", Type: Bytes, Indexed: false},
 		abi.Argument{Name: "value", Type: Bytes, Indexed: false},
 	}
 
-	stateRootHash, proof, key, value = sampleFalseProof()
+	stateRootHash, proof, key, value = sampleWrongValue()
 
 	encoded, err := arguments.Pack(stateRootHash, proof, key, value)
 	if err != nil {
