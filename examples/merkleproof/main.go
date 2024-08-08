@@ -28,7 +28,7 @@ func proofAbi() {
 		abi.Argument{Name: "value", Type: Bytes, Indexed: false},
 	}
 
-	stateRootHash, proof, key, value = sampleWrongValue()
+	stateRootHash, proof, key, value = sample1()
 
 	encoded, err := arguments.Pack(stateRootHash, proof, key, value)
 	if err != nil {
@@ -68,33 +68,4 @@ func boolAbi() {
 		return
 	}
 	fmt.Println(hex.EncodeToString(encoded))
-}
-
-func simpleAbi() {
-	var a int64
-	var b int64
-
-	Int64, _ := abi.NewType("int64", "", nil)
-
-	var arguments = abi.Arguments{
-		abi.Argument{Name: "a", Type: Int64, Indexed: false},
-		abi.Argument{Name: "b", Type: Int64, Indexed: false},
-	}
-
-	a = 1
-	b = 2
-
-	encoded, err := arguments.Pack(a, b)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(encoded)
-
-	decoded, err := arguments.Unpack(encoded)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(decoded)
 }
